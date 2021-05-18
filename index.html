@@ -1,0 +1,286 @@
+<body style="margin: 0; position: relative;">
+  <div style="position: absolute; top: 0; left: 0; right: 0; border-bottom: solid black 1px; z-index: 999999999; text-align: center; background-color: white;">
+    <button style="position: absolute; left: 0;">rectings</button>
+
+    <div id="swatch1" style="display: inline-block; height: 16px; width: 16px; border: solid black 1px;"></div>  
+    <div id="swatch2" style="display: inline-block; height: 16px; width: 16px; border: solid black 1px;"></div>  
+    <div id="swatch3" style="display: inline-block; height: 16px; width: 16px; border: solid black 1px;"></div>  
+    <div id="swatch4" style="display: inline-block; height: 16px; width: 16px; border: solid black 1px;"></div>  
+    <div id="swatch5" style="display: inline-block; height: 16px; width: 16px; border: solid black 1px;"></div>  
+
+    <!--
+    <div id="controls" style="display: inline-block;">
+      cycle1
+      <input type="range" />
+      <button>x1</button>
+    </div>
+    <div id="controls" style="display: inline-block;">
+      cycle1
+      <input type="range" />
+      <button>x1</button>
+    </div>
+    -->
+    <div id="controls" style="display: inline-block;">
+      kick
+      <input id="kick" type="range" />
+    </div>
+    <div id="controls" style="display: inline-block;">
+      delay
+      <input id="delay" type="range" />
+    </div>
+    <div id="controls" style="display: inline-block;">
+      fade
+      <input id="fade" type="range" />
+      <button id="resetButton">cc</button>
+    </div>
+  </div>
+  
+  <div id="wall10" class='wall' style="opacity: .1; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall20" class='wall' style="opacity: .2; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall30" class='wall' style="opacity: .3; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall40" class='wall' style="opacity: .4; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall50" class='wall' style="opacity: .5; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall60" class='wall' style="opacity: .6; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall70" class='wall' style="opacity: .7; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall80" class='wall' style="opacity: .8; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall90" class='wall' style="opacity: .9; position: absolute; width: 100%; height: 100%;"></div>
+  <div id="wall100" class='wall' style="opacity: 1; position: absolute; width: 100%; height: 100%;"></div>
+
+  <div id="cradle1" style="position: absolute; width: 100%; height: 100%;"></div>
+  <div id="cradle2" style="position: absolute; width: 100%; height: 100%;"></div>
+</body>
+
+<script>
+  let wallColor
+  let creamGreen
+  let creamPink
+  let creamOrange
+  let creamSalmon
+  let creamYellow
+  let colors = []
+
+  function reset() {
+    while (colors.length) {
+      colors.pop()
+    }
+
+    wallColor = '#e8f3ff'
+    creamGreen = '#b0c26c'
+    creamPink = '#bf7d6d'
+    creamOrange = '#e3b98a'
+    creamSalmon = '#e19483'
+    creamYellow = '#f9dd9a'
+
+    colors = [creamGreen, creamPink, creamOrange, creamSalmon, creamYellow]
+    colors.forEach((color, i) => {
+      let swatchCuboid = document.getElementById('swatch' + (i+1)); 
+      swatchCuboid.style.backgroundColor = colors[i];
+
+      // chooses another random color on click
+      swatchCuboid.addEventListener('click', _ => {
+        let newRandomColor = randomSixHexColor()
+        colors[i] = newRandomColor
+        swatchCuboid.style.backgroundColor = newRandomColor
+      })
+    })
+    return reset
+  }
+
+  resetButton.addEventListener('click', reset())
+
+  let padding = 50
+  let minRectWidth = 50
+  let minRectHeight = 50
+  let maxRectWidth = 250
+  let maxRectHeight = 250
+
+  let width,height;
+  function measureWindow() {
+    width = window.innerWidth
+    height = window.innerHeight
+    console.log(width, height)
+    return measureWindow
+  }
+
+  window.addEventListener('resize', measureWindow())
+
+  let settings = {
+    minKickRate: 1,
+    maxKickRate: 5000,
+
+    minFadeTime: 1,
+    maxFadetime: 5000,
+
+    minDelayTime: 1,
+    maxDelayTime: 5000,
+
+    kickValue: 30,
+    fadeValue: 30,
+    delayValue: 30
+  }
+
+  let sliders = Array.from(document.getElementsByTagName('input'))
+  let [c1, c2, kick, fade, delay] = sliders
+  sliders.forEach(slider => {
+    slider.min = 1
+    slider.max = 100
+    slider.value = (slider.max - slider.min) / 2
+
+    slider.addEventListener('change', _ => {
+      console.log('sliding')
+    })
+  })
+
+  wall10.style.backgroundColor = wallColor;
+  wall20.style.backgroundColor = wallColor;
+  wall30.style.backgroundColor = wallColor;
+  wall40.style.backgroundColor = wallColor;
+  wall50.style.backgroundColor = wallColor;
+  wall60.style.backgroundColor = wallColor;
+  wall70.style.backgroundColor = wallColor;
+  wall80.style.backgroundColor = wallColor;
+  wall90.style.backgroundColor = wallColor;
+  wall100.style.backgroundColor = wallColor;
+
+  let count = 0
+
+  let zIndex = 0
+  let wallZIndex = -50
+
+  cradle1.style.zIndex = 999999
+  cradle2.style.zIndex = 999999
+
+  let cradle1Opacity = 0
+  let cradle2Opacity = 100
+  let factor = 1
+
+  setInterval(tick, 30)
+  //setTimeout(randRect, settings['kickValue'])
+  randRect()
+  randRect()
+  randRect()
+  randRect()
+
+  function tick() {
+    zIndex++
+    wallZIndex++
+
+    count = count % 100
+
+    cradle1Opacity += factor
+    cradle2Opacity -= factor
+    
+    if (cradle1Opacity % 100 === 0) {
+      let hiddenCradle
+      if (cradle1Opacity === 0) {
+        hiddenCradle = cradle1
+      } else {
+        hiddenCradle = cradle2
+      }
+
+      while (hiddenCradle.firstChild) {
+        hiddenCradle.firstChild.remove()
+      }
+
+      '1234567890'.split('').forEach(_ => {
+        '123'.split('').forEach(_ => {
+          randRect(hiddenCradle)
+        })
+      })
+
+      factor *= -1
+    }
+
+    cradle1.style.opacity = cradle1Opacity / 100
+    cradle2.style.opacity = cradle2Opacity / 100
+
+    wall10.style.zIndex = wallZIndex
+    wall20.style.zIndex = wallZIndex
+  }
+
+  function randRect(cradle) {
+    let xx = width * Math.random()  
+    let yy = height * Math.random()  
+
+    xx = Math.max(xx, padding);
+    yy = Math.max(yy, padding);
+
+    let rectWidth = minRectWidth + maxRectWidth * Math.random()
+    let rectHeight = minRectHeight + maxRectHeight * Math.random()
+
+    let right = xx + rectWidth
+    let bottom = yy + rectHeight
+
+    if (right > width - padding) {
+      return randRect(cradle)
+    }
+
+    if (bottom > height - padding) {
+      return randRect(cradle)
+    }
+
+
+    let randColor = colors[Math.floor(Math.random() * colors.length)]
+
+    let div = document.createElement('div')
+    div.style.position = 'absolute'
+    div.style.top = yy
+    div.style.left = xx
+    div.style.width = rectWidth
+    div.style.height = rectHeight
+    div.style.backgroundColor = randColor
+    div.style.borderRadius = 4 + 20 * Math.random() + 'px'
+
+    div.style.zIndex = zIndex
+    div.style.opacity = 1
+
+    if (cradle) {
+      cradle.appendChild(div)
+    } else if (Math.random() < .5) {
+      cradle1.appendChild(div)
+    } else {
+      cradle2.appendChild(div)
+    }
+
+    return
+
+    div.style.opacity = 0
+    let opacity = 0
+    function fadeIn() {
+      opacity += 20
+      div.style.opacity = opacity / 100
+      if (opacity < 100) {
+        setTimeout(fadeIn, 30)
+      } else {
+        setTimeout(fadeOut, settings['fadeValue'])
+      }
+    }
+    setTimeout(fadeIn, 30)
+
+    function fadeOut() {
+      opacity -= 5
+      div.style.opacity = opacity / 100
+      if (opacity > 0) {
+        setTimeout(fadeOut, settings['fadeValue'])
+      }  else {
+        div.remove()
+      }
+    }
+
+    setTimeout(randRect, settings['kickValue'])
+  }
+
+  function clamp(value, min, max) {
+
+  }
+
+  function randomSixHexColor() {
+    let choices = '0123456789abcdef'
+    let color = '#'
+    '123456'.split('').forEach(_ => {
+      color += choices.charAt(Math.floor(Math.random() * choices.length))
+    })
+
+    return color
+  }
+</script>
